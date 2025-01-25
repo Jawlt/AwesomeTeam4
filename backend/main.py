@@ -11,6 +11,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.api_route("/api", methods=["GET", "POST", "PUT", "DELETE"])
-async def handle_crud():
+@app.get("/api")
+async def get_message():
     return {"message": "Handling CRUD operations"}
