@@ -26,17 +26,38 @@ export default function Home() {
     }
   ]);
 
+  // Redirect user to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/login');
     }
   }, [user, isLoading, router]);
 
+  // Call the addUser API after authentication
   useEffect(() => {
-    // Get the base URL of the application
+    if (user) {
+      const addUser = async () => {
+        try {
+          const response = await fetch('/api/auth/addUser');
+          const data = await response.json();
+          if (!response.ok) {
+            console.error('Error adding user:', data.error);
+          } else {
+            console.log('User added successfully:', data.message);
+          }
+        } catch (err) {
+          console.error('Failed to connect to the server:', err);
+        }
+      };
+
+      addUser();
+    }
+  }, [user]);
+
+  // Set base URL and update links
+  useEffect(() => {
     const url = window.location.origin;
     setBaseUrl(url);
-    // Update links with base URL
     setLinkCards(prevCards => 
       prevCards.map(card => ({
         ...card,

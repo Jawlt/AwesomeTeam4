@@ -19,9 +19,11 @@ export default function Navbar() {
             <div className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-lg py-1 z-10">
               <button 
                 className="block w-full text-left px-4 py-2 text-sm text-dark hover:bg-primary hover:text-white"
-                onClick={() => console.log('Logout clicked')}
+                onClick={() => {
+                    window.location.href = '/api/auth/logout';
+                }}
               >
-                Log In
+                Logout
               </button>
             </div>
           )}
