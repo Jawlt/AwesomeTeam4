@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import VideoPlayer from '@/components/VideoPlayer';
+import GoogleSlides from '@/components/GoogleSlides';
 import AvatarCircle from '@/components/AvatarCircle';
 import MicrophoneButton from '@/components/MicrophoneButton';
 
@@ -11,6 +11,7 @@ export default function TrainingPage() {
   const [isMicActive, setIsMicActive] = useState(false);
   const params = useParams();
   const title = decodeURIComponent(params.title);
+  const presentationId = '2PACX-1vQZJuY2sXryjYVYZa60igqZhVevkovTzR3NFqVNHgWXH42csZdf2zIMfNKPWs4lwMZGcXIL_zpyqNTD';
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,7 +23,7 @@ export default function TrainingPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-8">
           <div className="relative aspect-video bg-dark rounded-lg overflow-hidden">
-            <VideoPlayer />
+            <GoogleSlides presentationId={presentationId} />
           </div>
           
           <div className="flex flex-col justify-between h-full">
