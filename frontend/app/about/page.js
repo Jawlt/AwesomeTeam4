@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 export default function Home() {
     const [message, setMessage] = useState('');
+    
 
     useEffect(() => {
         const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
