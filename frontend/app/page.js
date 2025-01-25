@@ -1,11 +1,31 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import FileUpload from '@/components/FileUpload';
 import LinkCard from '@/components/LinkCard';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
+  
+  const { user, isLoading, error } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="flex items-center justify-center h-screen text-red-500">Error: {error.message}</div>;
+  }
+  
   const [baseUrl, setBaseUrl] = useState('');
   const [linkCards, setLinkCards] = useState([
     {
@@ -50,7 +70,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
