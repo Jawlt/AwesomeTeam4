@@ -1,25 +1,52 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import FileUpload from '@/components/FileUpload';
 import LinkCard from '@/components/LinkCard';
 
-const links = [
-  {
-    title: 'Apple Tech Training',
-    link: 'https://securityheretraining.com'
-  },
-  {
-    title: 'Oracle Security Training',
-    link: 'https://securityheretraining.com'
-  },
-  {
-    title: 'Microsoft M365 Training',
-    link: 'https://securityheretraining.com'
-  }
-];
-
 export default function Home() {
+  const [baseUrl, setBaseUrl] = useState('');
+  const [linkCards, setLinkCards] = useState([
+    {
+      title: 'Apple Tech Training',
+      link: ''
+    },
+    {
+      title: 'Oracle Security Training',
+      link: ''
+    },
+    {
+      title: 'Microsoft M365 Training',
+      link: ''
+    }
+  ]);
+
+  useEffect(() => {
+    // Get the base URL of the application
+    const url = window.location.origin;
+    setBaseUrl(url);
+    // Update links with base URL
+    setLinkCards(prevCards => 
+      prevCards.map(card => ({
+        ...card,
+        link: `${url}/training/${encodeURIComponent(card.title)}`
+      }))
+    );
+  }, []);
+
+  const handleDeleteLink = (index) => {
+    setLinkCards(prevCards => prevCards.filter((_, i) => i !== index));
+  };
+
+  const handleFilesSubmit = (files) => {
+    const newLink = {
+      title: 'Untitled',
+      link: `${baseUrl}/training/${encodeURIComponent('Untitled')}`
+    };
+    setLinkCards(prevCards => [...prevCards, newLink]);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -27,14 +54,16 @@ export default function Home() {
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <FileUpload />
+            <FileUpload onSubmit={handleFilesSubmit} />
           </div>
           <div className="space-y-4">
-            {links.map((item, index) => (
+            {linkCards.map((item, index) => (
               <LinkCard
                 key={index}
                 title={item.title}
                 link={item.link}
+                localLink={item.link.replace(baseUrl, '')}
+                onDelete={() => handleDeleteLink(index)}
               />
             ))}
           </div>
