@@ -1,9 +1,10 @@
 'use client';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function HomePage() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading, error } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -13,8 +14,20 @@ export default function HomePage() {
   }, [user, isLoading, router]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  return <h1>Welcome, {user?.name}</h1>;
+  if (error) {
+    return <div className="flex items-center justify-center h-screen text-red-500">Error: {error.message}</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold">Welcome, {user.name}</h1>
+    </div>
+  );
 }
