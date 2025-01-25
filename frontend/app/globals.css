@@ -18,3 +18,8 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Add smooth transitions for microphone button */
+.mic-transition {
+  transition: all 0.2s ease-in-out;
+}
