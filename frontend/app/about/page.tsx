@@ -7,7 +7,7 @@ export default function Home() {
 
     useEffect(() => {
         axios
-            .get(process.env.NEXT_PUBLIC_API_URL)
+            .get(`${process.env.NEXT_PUBLIC_API_URL}/api`)
             .then((response) => {
                 setMessage(response.data.message);
             })
