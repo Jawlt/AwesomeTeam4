@@ -8,8 +8,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        primary: {
+          DEFAULT: 'var(--primary)',
+          hover: 'var(--primary-hover)',
+        },
+        secondary: {
+          DEFAULT: 'var(--secondary)',
+          hover: 'var(--secondary-hover)',
+        },
+        dark: 'var(--dark)',
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+        card: 'var(--card-bg)',
       },
     },
   },
