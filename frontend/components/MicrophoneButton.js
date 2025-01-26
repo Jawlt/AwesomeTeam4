@@ -1,28 +1,44 @@
 import { useState, useEffect } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 
-export default function MicrophoneButton({ isActive, onClick }) {
+export default function MicrophoneButton({ isActive, onClick, avatarReady }) {
+  const [buttonText, setButtonText] = useState('Raise Your Hand');
+  const [isDisabled, setIsDisabled] = useState(false);
+
+  useEffect(() => {
+    if(!avatarReady && buttonText === 'Speak Now') {
+      setButtonText('Wait...');
+      setIsDisabled(true);
+    }
+    if (avatarReady && buttonText === 'Wait...') {
+      setButtonText('Speak Now');
+      setIsDisabled(false);
+    }
+    console.log("The avatar is ready to listen? ", avatarReady);
+  }, [avatarReady, buttonText]);
+
+  const handleClick = () => {
+    if (buttonText === 'Speak Now') {
+      setButtonText('Raise Your Hand');
+    } else {
+      setButtonText('Wait...');
+      setIsDisabled(true);
+    }
+    onClick();
+  };
+
+  
   return (
     <button
-      onClick={onClick}
-      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+      onClick={handleClick}
+      disabled={isDisabled}
+      className={`w-32 h-12 rounded-full flex items-center justify-center transition-colors ${
         isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-200 hover:bg-gray-300'
-      }`}
+      } ${isDisabled ? 'cursor-not-allowed' : ''}`}
     >
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className={`h-6 w-6 ${isActive ? 'text-white' : 'text-gray-600'}`} 
-        fill="none" 
-        viewBox="0 0 24 24" 
-        stroke="currentColor"
-      >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" 
-        />
-      </svg>
+      <span className={`text-sm font-semibold ${isActive ? 'text-white' : 'text-gray-600'}`}>
+        {buttonText}
+      </span>
     </button>
   );
 }

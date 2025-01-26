@@ -12,6 +12,7 @@ import axios from 'axios';
 export default function TrainingPage() {
   const [isMicActive, setIsMicActive] = useState(false);
   const [recognizer, setRecognizer] = useState(null);
+  const [isAvatarReady, setIsAvatarReady] = useState(false);
   const avatarRef = useRef(null);
   const params = useParams();
   const title = decodeURIComponent(params.title);
@@ -45,9 +46,17 @@ export default function TrainingPage() {
     };
   }, []);
 
-  const toggleMicrophone = async () => {
+  const raiseHand = async () => {
     if (!recognizer) return;
 
+    if(!isAvatarReady) {
+      //let the avatar know the user wants to speak
+      //avatar will finish its current sentence and then set isAvatarReady to true
+      if (avatarRef.current) {
+        await avatarRef.current.speak('What can I help you with?');
+      }
+      setIsAvatarReady(true);
+    }
     if (!isMicActive) {
       // Start recognition
       recognizer.recognized = (s, e) => {
@@ -87,7 +96,6 @@ export default function TrainingPage() {
     try {
       // Simple response logic - you can expand this based on your needs
       let response = '';
-      
       if (text.toLowerCase().includes('hello') || text.toLowerCase().includes('hi')) {
         response = "Hello! How can I help you today?";
       } else if (text.toLowerCase().includes('how are you')) {
@@ -100,7 +108,11 @@ export default function TrainingPage() {
 
       // Make the avatar speak the response
       if (avatarRef.current) {
+        setIsMicActive(false);
+        setIsAvatarReady(false);
         await avatarRef.current.speak(response);
+        setIsAvatarReady(true);
+        setIsMicActive(true);
       }
     } catch (error) {
       console.error('Error processing user input:', error);
@@ -125,8 +137,9 @@ export default function TrainingPage() {
             </div>
             <div className="flex justify-center">
               <MicrophoneButton 
-                isActive={isMicActive} 
-                onClick={toggleMicrophone} 
+                isActive={isMicActive}
+                onClick={raiseHand}
+                avatarReady={isAvatarReady}
               />
             </div>
           </div>
