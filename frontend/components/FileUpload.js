@@ -21,11 +21,7 @@ export default function FileUpload({ onSubmit }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop,
     maxFiles: 1,  // Limit to one file
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png'],
-      'application/pdf': ['.pdf'],
-      'text/plain': ['.txt']
-    }
+    accept: '.pdf,.docx', // Accept both PDF and DOCX files
   });
 
   const removeFile = () => {

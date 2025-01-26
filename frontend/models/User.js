@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const LectureSchema = new mongoose.Schema({
   title: { type: String, required: true },
   url: { type: String, required: true },
-  presentationId: { type: String },
+  presentationId: { type: String, default:'' },
   students: {
     type: [String],
     default: [],
@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema(
       default: [
         {
           title: 'Untitled Lecture',
-          url: 'https://example.com/',
+          url: 'https://localhost:3000/',
           students: []
         }
       ]
