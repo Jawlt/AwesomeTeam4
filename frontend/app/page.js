@@ -195,14 +195,8 @@ export default function Home() {
         keyGoals: keyGoals || '',
         fileContent: parsedText, // The parsed text content
       };
-
-      const sendData = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/create_new_presentation`,
-        {
-          title: title,
-          goals: keyGoals | '',
-          fileContent: JSON.stringify(parsedData, null, 2),
-        }
-      );
+      console.log('data:', parsedData);
+      const sendData = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/create_new_presentation`, parsedData);
 
       if (!sendData.ok) {
         console.error('Error sending data:', await sendData.json());

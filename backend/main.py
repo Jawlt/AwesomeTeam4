@@ -14,6 +14,7 @@ import base64
 from PIL import Image
 import fitz  # PyMuPDF
 import slideshow_generator
+from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -25,16 +26,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Pydantic model to define the expected structure
+class PresentationRequest(BaseModel):
+    title: str
+    keyGoals: str = ''
+    fileContent: str
+
 router = APIRouter()
 load_dotenv()
 
-# MongoDB setup
+# Connection to the first MongoDB instance
 MONGODB_URI = os.getenv("MONGODB_URI")
 client = MongoClient(MONGODB_URI)
 db = client["Hackville2025"]
 users_collection = db["users"]
 youtube_collection = db["youtube"]
 documents_collection = db["documents"]  # Collection for uploaded documents
+
+# Connection to the second MongoDB instance
+MONGODB_URI_2 = os.getenv("MONGODB_URI_2")
+client2 = MongoClient(MONGODB_URI_2)
+db2 = client2["Team4"]
+collection2 = db2["users"]
+
 
 # OpenAI setup
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -175,14 +189,20 @@ def create_new_presentation():
 
 
 @router.post("/create_new_presentation")
-async def create_new_presentation(title='title', goals='goals', information='information'):
+async def create_new_presentation(presentation: PresentationRequest):
+    print(presentation)  # This will print the parsed data
+
     try:
         print('Received request to create new presentation')
-        presentation_id = slideshow_generator.main(title, goals, information)
-        return {"message": "Presentation created successfully", presentation_id: presentation_id}
+        
+        # You can now access title, keyGoals, and fileContent directly from the 'presentation' object
+        presentation_id = slideshow_generator.main(presentation.title, presentation.keyGoals, presentation.fileContent)
+        
+        return {"message": "Presentation created successfully", "presentation_id": presentation_id}
     except Exception as e:
         print(f"Error creating presentation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.post("/upload")
