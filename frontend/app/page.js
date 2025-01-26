@@ -7,7 +7,7 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const { user, isLoading, error } = useUser();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [baseUrl, setBaseUrl] = useState('');
   const [linkCards, setLinkCards] = useState([
@@ -38,15 +38,15 @@ export default function Home() {
       const addUser = async () => {
         try {
           const response = await fetch('/api/auth/addUser', {
-            method: 'POST', // Ensure you are using POST
+            method: 'POST',
             headers: {
-              'Content-Type': 'application/json', // Specify JSON content type
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              auth0Id: user.sub,       // Sending the Auth0 user information
-              email: user.email,       // Sending the user's email
-              name: user.name,         // Sending the user's name
-              email_verified: user.email_verified, // Sending the email_verified status
+              auth0Id: user.sub,
+              email: user.email,
+              name: user.name,
+              email_verified: user.email_verified,
             }),
           });
 
@@ -82,12 +82,39 @@ export default function Home() {
     setLinkCards(prevCards => prevCards.filter((_, i) => i !== index));
   };
 
-  const handleFilesSubmit = (files) => {
+  const handleFilesSubmit = async ({ file, title, keyGoals }) => {
     const newLink = {
-      title: 'Untitled',
-      link: `${baseUrl}/training/${encodeURIComponent('Untitled')}`
+      title: title || 'Untitled',
+      link: `${baseUrl}/training/${encodeURIComponent(title || 'Untitled')}`
     };
-    setLinkCards(prevCards => [...prevCards, newLink]);
+  
+    try {
+      const response = await fetch('/api/auth/addLecture', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',  // Ensure JSON format
+        },
+        body: JSON.stringify({
+          auth0Id: user?.sub,
+          title: title,
+          keyGoals: keyGoals || '',
+          url: newLink.link,
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error adding lecture:', errorData);
+        return;
+      }
+  
+      console.log('Lecture added successfully');
+  
+      setLinkCards((prevCards) => [...prevCards, newLink]);
+  
+    } catch (error) {
+      console.error('Failed to connect to the server:', error);
+    }
   };
 
   return (
