@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, APIRouter, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
@@ -13,7 +13,7 @@ import io
 import base64
 from PIL import Image
 import fitz  # PyMuPDF
-
+import requests
 
 app = FastAPI()
 app.add_middleware(
@@ -33,11 +33,11 @@ client = MongoClient(MONGODB_URI)
 db = client["Hackville2025"]
 users_collection = db["users"]
 youtube_collection = db["youtube"]
-documents_collection = db["documents"]  # Collection for uploaded documents
+documents_collection = db["documents"]
 
-# OpenAI setup
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
+# Azure Speech Service credentials
+SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY")
+SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION")
 
 class MessageRequest(BaseModel):
     message: str
@@ -45,6 +45,38 @@ class MessageRequest(BaseModel):
 class GPTRequest(BaseModel):
     message: str
     context: str
+
+# Avatar-related endpoints
+@app.get("/api/speech-token")
+async def get_speech_token():
+    if not SPEECH_KEY or not SPEECH_REGION:
+        raise HTTPException(
+            status_code=400,
+            detail="Azure Speech Service credentials not configured"
+        )
+    
+    try:
+        headers = {
+            'Ocp-Apim-Subscription-Key': SPEECH_KEY
+        }
+        
+        # Get token from Azure Speech Service
+        token_url = f'https://{SPEECH_REGION}.api.cognitive.microsoft.com/sts/v1.0/issueToken'
+        response = requests.post(token_url, headers=headers)
+        response.raise_for_status()
+        
+        access_token = response.text
+        
+        return {
+            "token": access_token,
+            "region": SPEECH_REGION
+        }
+        
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get speech token: {str(e)}"
+        )
 
 
 # Helper Functions ------------------------------------------------------------------------------------------------------------------------
