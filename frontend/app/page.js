@@ -7,7 +7,6 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  
   const { user, isLoading, error } = useUser();
   const router = useRouter();
   const [baseUrl, setBaseUrl] = useState('');
@@ -38,8 +37,21 @@ export default function Home() {
     if (user) {
       const addUser = async () => {
         try {
-          const response = await fetch('/api/auth/addUser');
+          const response = await fetch('/api/auth/addUser', {
+            method: 'POST', // Ensure you are using POST
+            headers: {
+              'Content-Type': 'application/json', // Specify JSON content type
+            },
+            body: JSON.stringify({
+              auth0Id: user.sub,       // Sending the Auth0 user information
+              email: user.email,       // Sending the user's email
+              name: user.name,         // Sending the user's name
+              email_verified: user.email_verified, // Sending the email_verified status
+            }),
+          });
+
           const data = await response.json();
+
           if (!response.ok) {
             console.error('Error adding user:', data.error);
           } else {

@@ -1,5 +1,14 @@
 import mongoose from 'mongoose';
 
+const LectureSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  url: { type: String, required: true },
+  students: {
+    type: [String],
+    default: [],
+  }
+}, { _id: false });
+
 const UserSchema = new mongoose.Schema(
   {
     auth0Id: { type: String, required: true, unique: true },
@@ -8,12 +17,21 @@ const UserSchema = new mongoose.Schema(
     emailVerified: { type: Boolean, default: false },
     role: { type: String, default: 'teacher' },
     lastLogin: { type: Date, default: Date.now },
+    lectures: {
+      type: [LectureSchema],
+      default: [
+        {
+          title: 'Untitled Lecture',
+          url: 'https://example.com/',
+          students: []
+        }
+      ]
+    }
   },
   {
     timestamps: true,
-    collection: 'users',  // Explicitly specify the collection name
+    collection: 'users',
   }
 );
 
-// Export the model with proper collection binding
 export default mongoose.models.User || mongoose.model('User', UserSchema);
