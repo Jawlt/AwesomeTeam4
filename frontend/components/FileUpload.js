@@ -3,50 +3,53 @@ import { useDropzone } from 'react-dropzone';
 import FilePreview from './FilePreview';
 
 export default function FileUpload({ onSubmit }) {
-  const [files, setFiles] = useState([]);
-  
+  const [file, setFile] = useState(null);
+  const [title, setTitle] = useState('');
+  const [keyGoals, setKeyGoals] = useState('');
+
   const onDrop = useCallback(acceptedFiles => {
-    const filesWithPreview = acceptedFiles.map(file => {
-      return Object.assign(file, {
-        preview: file.type.startsWith('image/') 
-          ? URL.createObjectURL(file)
+    const selectedFile = acceptedFiles[0]; // Allow only one file
+    if (selectedFile) {
+      setFile(Object.assign(selectedFile, {
+        preview: selectedFile.type.startsWith('image/') 
+          ? URL.createObjectURL(selectedFile)
           : null
-      });
-    });
-    setFiles(prev => [...prev, ...filesWithPreview]);
+      }));
+    }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png'],
-      'application/pdf': ['.pdf'],
-      'text/plain': ['.txt']
-    }
+    maxFiles: 1,  // Limit to one file
+    accept: '.pdf,.docx', // Accept both PDF and DOCX files
   });
 
-  const removeFile = (fileToRemove) => {
-    if (fileToRemove.preview) {
-      URL.revokeObjectURL(fileToRemove.preview);
+  const removeFile = () => {
+    if (file?.preview) {
+      URL.revokeObjectURL(file.preview);
     }
-    setFiles(files.filter(file => file !== fileToRemove));
+    setFile(null);
   };
 
   const handleSubmit = () => {
-    onSubmit(files);
-    setFiles([]); // Clear files after submission
+    if (file && title.trim() !== '') {
+      onSubmit({ file, title, keyGoals });
+      removeFile(); // Clear file after submission
+      setTitle('');
+      setKeyGoals('');
+    } else {
+      alert('Please provide a title before submitting.');
+    }
   };
 
-  // Cleanup previews when component unmounts
+  // Cleanup preview when component unmounts or file changes
   useEffect(() => {
     return () => {
-      files.forEach(file => {
-        if (file.preview) {
-          URL.revokeObjectURL(file.preview);
-        }
-      });
+      if (file?.preview) {
+        URL.revokeObjectURL(file.preview);
+      }
     };
-  }, [files]);
+  }, [file]);
 
   return (
     <div className="w-full max-w-md">
@@ -57,30 +60,43 @@ export default function FileUpload({ onSubmit }) {
       >
         <input {...getInputProps()} />
         <p className="text-dark">
-          {isDragActive ? 'Drop files here' : 'Drag & drop files here, or click to select'}
+          {isDragActive ? 'Drop a file here' : 'Drag & drop a file here, or click to select'}
         </p>
         <p className="text-sm text-dark/60 mt-2">
-          Supported files: Images, PDF, Text
+          Supported files: Images, PDF, Text (only one at a time)
         </p>
       </div>
 
-      {files.length > 0 && (
+      {file && (
         <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-2 text-dark">Selected Files:</h3>
-          <ul className="space-y-3">
-            {files.map((file, index) => (
-              <FilePreview
-                key={index}
-                file={file}
-                onRemove={() => removeFile(file)}
-              />
-            ))}
-          </ul>
+          <h3 className="text-lg font-semibold mb-2 text-dark">Selected File:</h3>
+          <FilePreview file={file} onRemove={removeFile} />
+
+          <input
+            type="text"
+            placeholder="Enter Lecture Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="border border-gray-300 rounded p-2 text-dark w-full mt-2"
+          />
+
+          <textarea
+            placeholder="Enter Key Goals"
+            value={keyGoals}
+            onChange={(e) => setKeyGoals(e.target.value)}
+            className="border border-gray-300 rounded p-2 text-dark w-full mt-2"
+          />
+
           <button 
-            className="mt-4 w-full bg-primary text-white py-2 px-4 rounded hover:bg-primary-hover transition-colors"
+            className={`mt-4 w-full py-2 px-4 rounded transition-colors ${
+              title.trim() === '' 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-primary text-white hover:bg-primary-hover'
+            }`}
             onClick={handleSubmit}
+            disabled={title.trim() === ''}
           >
-            Submit Files
+            Submit File
           </button>
         </div>
       )}

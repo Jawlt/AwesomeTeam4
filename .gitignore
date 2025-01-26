@@ -124,3 +124,6 @@ temp/
 venv/
 *.pyc
 __pycache__/
+
+google_client_secret.json
+token.pickle

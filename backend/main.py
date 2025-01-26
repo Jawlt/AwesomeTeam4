@@ -14,6 +14,9 @@ import base64
 from PIL import Image
 import fitz  # PyMuPDF
 import requests
+import slideshow_generator
+from pydantic import BaseModel
+
 
 app = FastAPI()
 app.add_middleware(
@@ -24,16 +27,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Pydantic model to define the expected structure
+class PresentationRequest(BaseModel):
+    title: str
+    keyGoals: str = ''
+    fileContent: str
+
 router = APIRouter()
 load_dotenv()
 
-# MongoDB setup
+# Connection to the first MongoDB instance
 MONGODB_URI = os.getenv("MONGODB_URI")
 client = MongoClient(MONGODB_URI)
 db = client["Hackville2025"]
 users_collection = db["users"]
 youtube_collection = db["youtube"]
-documents_collection = db["documents"]
+documents_collection = db["documents"]  # Collection for uploaded documents
+
+# Connection to the second MongoDB instance
+MONGODB_URI_2 = os.getenv("MONGODB_URI_2")
+client2 = MongoClient(MONGODB_URI_2)
+db2 = client2["Team4"]
+collection2 = db2["users"]
+
+
+# OpenAI setup
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Azure Speech Service credentials
 SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY")
@@ -177,28 +196,53 @@ async def search_context(request: MessageRequest):
         print(f"Search error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
-
 @router.post("/chat_gpt")
-async def get_gpt_response(request: GPTRequest, current_user: str = None):
+def create_new_presentation():
+    print('new presentation called')
+
+
+# @router.post("/chat_gpt")
+# async def get_gpt_response(request: GPTRequest, current_user: str = None):
+#     try:
+#         print("\nReceived GPT request:")
+#         print(f"Message: {request.message}")
+#         print(f"Context: {request.context}")
+
+#         system_prompt = """ADD SYSTEM PROMPT HERE"""
+
+#         messages = [
+#             {"role": "system", "content": system_prompt},
+#             {"role": "user", "content": f"Context from video:\n{request.context}\n\nUser question: {request.message}"}
+#         ]
+
+#         return StreamingResponse(
+#             stream_gpt_response(messages, current_user),
+#             media_type="text/event-stream"
+#         )
+#     except Exception as e:
+#         print(f"GPT error: {str(e)}")
+#         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/create_new_presentation")
+async def create_new_presentation(presentation: PresentationRequest):
+    print(presentation)  # This will print the parsed data
+
     try:
-        print("\nReceived GPT request:")
-        print(f"Message: {request.message}")
-        print(f"Context: {request.context}")
-
-        system_prompt = """ADD SYSTEM PROMPT HERE"""
-
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Context from video:\n{request.context}\n\nUser question: {request.message}"}
-        ]
-
-        return StreamingResponse(
-            stream_gpt_response(messages, current_user),
-            media_type="text/event-stream"
-        )
+        print('Received request to create new presentation')
+        
+        # You can now access title, keyGoals, and fileContent directly from the 'presentation' object
+        [presentation_id, scripts] = slideshow_generator.main(presentation.title, presentation.keyGoals, presentation.fileContent)
+        
+        return {"message": "Presentation created successfully",
+                "status": "success",
+                "presentation_id": presentation_id,
+                "scripts": scripts,
+                }
     except Exception as e:
-        print(f"GPT error: {str(e)}")
+        print(f"Error creating presentation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.post("/upload")
@@ -275,3 +319,6 @@ async def upload_documents(files: List[UploadFile]):
     except Exception as e:
         print(f"Upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+app.include_router(router, prefix="/api")
