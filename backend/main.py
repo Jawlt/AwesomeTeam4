@@ -151,35 +151,35 @@ def create_new_presentation():
     print('new presentation called')
 
 
-@router.post("/chat_gpt")
-async def get_gpt_response(request: GPTRequest, current_user: str = None):
-    try:
-        print("\nReceived GPT request:")
-        print(f"Message: {request.message}")
-        print(f"Context: {request.context}")
+# @router.post("/chat_gpt")
+# async def get_gpt_response(request: GPTRequest, current_user: str = None):
+#     try:
+#         print("\nReceived GPT request:")
+#         print(f"Message: {request.message}")
+#         print(f"Context: {request.context}")
 
-        system_prompt = """ADD SYSTEM PROMPT HERE"""
+#         system_prompt = """ADD SYSTEM PROMPT HERE"""
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Context from video:\n{request.context}\n\nUser question: {request.message}"}
-        ]
+#         messages = [
+#             {"role": "system", "content": system_prompt},
+#             {"role": "user", "content": f"Context from video:\n{request.context}\n\nUser question: {request.message}"}
+#         ]
 
-        return StreamingResponse(
-            stream_gpt_response(messages, current_user),
-            media_type="text/event-stream"
-        )
-    except Exception as e:
-        print(f"GPT error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+#         return StreamingResponse(
+#             stream_gpt_response(messages, current_user),
+#             media_type="text/event-stream"
+#         )
+#     except Exception as e:
+#         print(f"GPT error: {str(e)}")
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/create_new_presentation")
-async def create_new_presentation():
+async def create_new_presentation(title='title', goals='goals', information='information'):
     try:
         print('Received request to create new presentation')
-        slideshow_generator.main()
-        return {"message": "Presentation created successfully"}
+        presentation_id = slideshow_generator.main(title, goals, information)
+        return {"message": "Presentation created successfully", presentation_id: presentation_id}
     except Exception as e:
         print(f"Error creating presentation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
