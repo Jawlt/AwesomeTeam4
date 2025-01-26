@@ -53,7 +53,7 @@ class GPTSlides(BaseModel):
 
 
 # Function to generate slide content using OpenAI
-def generate_slide_content(topic):
+def generate_slide_content(topic, title, goals, information):
     prompt = f"""
     Generate json content for a training topic on {topic}. Provide four slides, where the first slide is an intro. The 3 remaining slides focus on content:
     - A title
@@ -205,27 +205,6 @@ def create_slides(service, presentation_id, slide_data):
     print("Slides created and populated successfully.")
 
 
-def apply_theme(service, presentation_id, theme_id):
-    requests = [
-        {
-            'updatePresentationProperties': {
-                'properties': {
-                    'theme': {
-                        'themeId': theme_id
-                    }
-                },
-                'fields': 'theme'
-            }
-        }
-    ]
-    
-    response = service.presentations().batchUpdate(
-        presentationId=presentation_id,
-        body={'requests': requests}
-    ).execute()
-
-    print(f"Applied theme {theme_id} to the presentation.")
-
 
 def publish_presentation(creds, presentation_id):
     try:
@@ -247,7 +226,7 @@ def publish_presentation(creds, presentation_id):
     except HttpError as error:
         print(f"An error occurred while publishing the presentation: {error}")
 
-def main():
+def main(title, goals, information):
     creds = None
 
     # If there's a saved token
@@ -265,7 +244,7 @@ def main():
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
 
-
+    print(title, goals, information)
     try:
         service = build('slides', 'v1', credentials=creds)
 
@@ -277,7 +256,7 @@ def main():
 
         # Generate slide content
         topic = "Artificial Intelligence"
-        content = generate_slide_content(topic)
+        content = generate_slide_content(topic, title, goals, information)
         print(f"Generated content: {content}")
 
         # Create slides from the generated content
@@ -288,6 +267,8 @@ def main():
         publish_presentation(creds, presentation_id)  # Pass the creds here
         presentation_url = f"https://docs.google.com/presentation/d/{presentation_id}/embed"
         print(f"Your presentation is available at: {presentation_url}")
+        return presentation_id
+
 
     except Exception as e:
         print(f"An error occurred: {e}")
