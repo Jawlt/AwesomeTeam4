@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import axios from 'axios';
 
-export default function AvatarCircle() {
+const AvatarCircle = forwardRef((props, ref) => {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   const peerConnectionRef = useRef(null);
@@ -10,10 +10,22 @@ export default function AvatarCircle() {
   const videoRef = useRef(null);
   const audioRef = useRef(null);
 
+  // Expose speak method to parent component
+  useImperativeHandle(ref, () => ({
+    speak: async (text) => {
+      if (!avatarSynthesizerRef.current || !isConnected) return;
+      try {
+        await avatarSynthesizerRef.current.speakTextAsync(text);
+      } catch (err) {
+        console.error('Speech error:', err);
+        setError(err.message);
+      }
+    }
+  }));
+
   useEffect(() => {
     const initializeAvatar = async () => {
       try {
-        // Get speech token from backend using the correct URL
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
         if (!backendUrl) {
           throw new Error('Backend URL not configured');
@@ -22,7 +34,6 @@ export default function AvatarCircle() {
         const tokenResponse = await axios.get(`${backendUrl}/api/speech-token`);
         const { token, region } = tokenResponse.data;
 
-        // Configure with multiple public STUN servers for better reliability
         const peerConnection = new RTCPeerConnection({
           iceServers: [
             {
@@ -43,12 +54,10 @@ export default function AvatarCircle() {
 
         peerConnectionRef.current = peerConnection;
 
-        // Log ICE connection state changes
         peerConnection.oniceconnectionstatechange = () => {
           console.log('ICE Connection State:', peerConnection.iceConnectionState);
         };
 
-        // Handle incoming tracks
         peerConnection.ontrack = (event) => {
           if (event.track.kind === 'video' && videoRef.current) {
             videoRef.current.srcObject = event.streams[0];
@@ -58,32 +67,24 @@ export default function AvatarCircle() {
           }
         };
 
-        // Add transceivers
         peerConnection.addTransceiver('video', { direction: 'sendrecv' });
         peerConnection.addTransceiver('audio', { direction: 'sendrecv' });
 
-        // Initialize Speech SDK with token
         const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
-
-        // Configure speech settings
         speechConfig.speechSynthesisLanguage = "en-US";
         speechConfig.speechSynthesisVoiceName = "en-US-JennyMultilingualNeural";
 
-        // Configure avatar
         const avatarConfig = new SpeechSDK.AvatarConfig(
           "lisa",
           "casual-sitting"
         );
 
-        // Create avatar synthesizer
         const avatarSynthesizer = new SpeechSDK.AvatarSynthesizer(speechConfig, avatarConfig);
         avatarSynthesizerRef.current = avatarSynthesizer;
 
-        // Start avatar
         await avatarSynthesizer.startAvatarAsync(peerConnection);
         setIsConnected(true);
 
-        // Test speech
         const welcomeText = "Hello! I'm your AI training assistant. How can I help you today?";
         await avatarSynthesizer.speakTextAsync(welcomeText);
 
@@ -95,7 +96,6 @@ export default function AvatarCircle() {
 
     initializeAvatar();
 
-    // Cleanup
     return () => {
       if (avatarSynthesizerRef.current) {
         avatarSynthesizerRef.current.close();
@@ -105,17 +105,6 @@ export default function AvatarCircle() {
       }
     };
   }, []);
-
-  const speak = async (text) => {
-    if (!avatarSynthesizerRef.current || !isConnected) return;
-
-    try {
-      await avatarSynthesizerRef.current.speakTextAsync(text);
-    } catch (err) {
-      console.error('Speech error:', err);
-      setError(err.message);
-    }
-  };
 
   return (
     <div className="relative w-64 h-64 rounded-full bg-dark/10 border-2 border-dark/20 overflow-hidden">
@@ -138,4 +127,7 @@ export default function AvatarCircle() {
       )}
     </div>
   );
-}
+});
+
+AvatarCircle.displayName = 'AvatarCircle';
+export default AvatarCircle;
