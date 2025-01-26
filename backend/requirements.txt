@@ -67,6 +67,7 @@ pyparsing==3.2.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-multipart==0.0.20
+pytils==0.4.1
 pytz==2024.2
 pyxnat==1.6.2
 rdflib==6.3.2
@@ -79,6 +80,7 @@ six==1.17.0
 sniffio==1.3.1
 soupsieve==2.6
 starlette==0.45.3
+tools==0.1.9
 tqdm==4.67.1
 traits==7.0.2
 typing_extensions==4.12.2
