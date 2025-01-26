@@ -5,6 +5,7 @@ import FileUpload from '@/components/FileUpload';
 import LinkCard from '@/components/LinkCard';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 export default function Home() {
   const { user, isLoading } = useUser();
@@ -50,12 +51,10 @@ export default function Home() {
             }),
           });
 
-          const data = await response.json();
-
           if (!response.ok) {
-            console.error('Error adding user:', data.error);
+            console.error('Error adding user:', await response.json());
           } else {
-            console.log('User added successfully:', data.message);
+            console.log('User added successfully');
           }
         } catch (err) {
           console.error('Failed to connect to the server:', err);
@@ -92,7 +91,7 @@ export default function Home() {
       const response = await fetch('/api/auth/addLecture', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',  // Ensure JSON format
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           auth0Id: user?.sub,
@@ -103,13 +102,11 @@ export default function Home() {
       });
   
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error adding lecture:', errorData);
+        console.error('Error adding lecture:', await response.json());
         return;
       }
   
       console.log('Lecture added successfully');
-  
       setLinkCards((prevCards) => [...prevCards, newLink]);
   
     } catch (error) {
@@ -117,15 +114,32 @@ export default function Home() {
     }
   };
 
+  const handleCreatePresentation = async () => {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/create_new_presentation`
+      );
+      console.log('Presentation created:', response.data);
+    } catch (error) {
+      console.error('Error creating presentation:', error);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className='min-h-screen bg-background'>
       <Navbar />
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <main className='max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
           <div>
             <FileUpload onSubmit={handleFilesSubmit} />
+            <button
+              onClick={handleCreatePresentation}
+              className='mt-4 px-4 py-2 bg-blue-500 text-white rounded'
+            >
+              Create Presentation
+            </button>
           </div>
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {linkCards.map((item, index) => (
               <LinkCard
                 key={index}
