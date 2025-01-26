@@ -13,6 +13,7 @@ import io
 import base64
 from PIL import Image
 import fitz  # PyMuPDF
+import slideshow_generator
 
 
 app = FastAPI()
@@ -145,6 +146,10 @@ async def search_context(request: MessageRequest):
         print(f"Search error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
+@router.post("/chat_gpt")
+def create_new_presentation():
+    print('new presentation called')
+
 
 @router.post("/chat_gpt")
 async def get_gpt_response(request: GPTRequest, current_user: str = None):
@@ -166,6 +171,17 @@ async def get_gpt_response(request: GPTRequest, current_user: str = None):
         )
     except Exception as e:
         print(f"GPT error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/create_new_presentation")
+async def create_new_presentation():
+    try:
+        print('Received request to create new presentation')
+        slideshow_generator.main()
+        return {"message": "Presentation created successfully"}
+    except Exception as e:
+        print(f"Error creating presentation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -243,3 +259,6 @@ async def upload_documents(files: List[UploadFile]):
     except Exception as e:
         print(f"Upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+app.include_router(router, prefix="/api")
