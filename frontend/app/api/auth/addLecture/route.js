@@ -4,7 +4,9 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req) {
     try {
-        const { auth0Id, title, url, presentationId } = await req.json();
+        const { auth0Id, title, url, scripts, presentationId } =
+            await req.json();
+        console.log('print in route', scripts, presentationId);
 
         if (!auth0Id || !title || !url) {
             return NextResponse.json(
@@ -20,7 +22,13 @@ export async function POST(req) {
             { auth0Id },
             {
                 $push: {
-                    lectures: { title, url, students: [], presentationId }, // Add a new lecture
+                    lectures: {
+                        title,
+                        url,
+                        students: [],
+                        scripts,
+                        presentationId,
+                    }, // Add a new lecture
                 },
             },
             { new: true } // Do not use upsert to avoid creating a new user

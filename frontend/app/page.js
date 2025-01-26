@@ -221,12 +221,8 @@ export default function Home() {
             );
             console.log(sendData);
             console.log(sendData.data.presentation_id);
-            // if (!sendData.ok) {
-            //   console.error('Error sending data:', await sendData.json());
-            //   return;
-            // }
 
-            console.log('Data successfully');
+            console.log('Data successfully!');
 
             // Proceed with sending the parsed data to the backend (optional)
             const response = await fetch('/api/auth/addLecture', {
@@ -238,6 +234,7 @@ export default function Home() {
                     auth0Id: user?.sub,
                     title: title,
                     url: newLink.link,
+                    scripts: sendData.data.scripts,
                     presentationId: sendData.data.presentation_id,
                 }),
             });
@@ -254,17 +251,6 @@ export default function Home() {
         }
     };
 
-    const handleCreatePresentation = async () => {
-        try {
-            const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/create_new_presentation`
-            );
-            console.log('Presentation created:', response.data);
-        } catch (error) {
-            console.error('Error creating presentation:', error);
-        }
-    };
-
     return (
         <div className='min-h-screen bg-background'>
             <Navbar />
@@ -272,12 +258,6 @@ export default function Home() {
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                     <div>
                         <FileUpload onSubmit={handleFilesSubmit} />
-                        <button
-                            onClick={handleCreatePresentation}
-                            className='mt-4 px-4 py-2 bg-blue-500 text-white rounded'
-                        >
-                            Create Presentation
-                        </button>
                     </div>
                     <div className='space-y-4'>
                         {linkCards.map((item, index) => (

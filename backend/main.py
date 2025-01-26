@@ -196,11 +196,13 @@ async def create_new_presentation(presentation: PresentationRequest):
         print('Received request to create new presentation')
         
         # You can now access title, keyGoals, and fileContent directly from the 'presentation' object
-        presentation_id = slideshow_generator.main(presentation.title, presentation.keyGoals, presentation.fileContent)
+        [presentation_id, scripts] = slideshow_generator.main(presentation.title, presentation.keyGoals, presentation.fileContent)
         
         return {"message": "Presentation created successfully",
                 "status": "success",
-                "presentation_id": presentation_id}
+                "presentation_id": presentation_id,
+                "scripts": scripts,
+                }
     except Exception as e:
         print(f"Error creating presentation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

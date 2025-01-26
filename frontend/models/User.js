@@ -5,6 +5,7 @@ const LectureSchema = new mongoose.Schema(
         title: { type: String, required: true },
         url: { type: String, required: true },
         presentationId: { type: String, required: true },
+        scripts: { type: [String], default: [] },
         students: {
             type: [String],
             default: [],

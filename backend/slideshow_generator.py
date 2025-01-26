@@ -55,10 +55,12 @@ class GPTSlides(BaseModel):
 # Function to generate slide content using OpenAI
 def generate_slide_content(topic, title, goals, information):
     prompt = f"""
-    Generate json content for a training topic on {topic}. Provide four slides, where the first slide is an intro. The 3 remaining slides focus on content:
+    Generate json content for a training topic on {title}. The learning goals of the training are {goals}. Make the response for highly educated and smart individuals. Provide four slides, where the first slide is an intro. The 3 remaining slides focus on content:
     - A title
     - A body (a list of 3 bullet points, with good detail)
     - A script (a paragraph of text)
+
+    Use the following context for facts in the bullet points: {information}
     """
     response = openai_client.beta.chat.completions.parse(
         model="gpt-4o-2024-08-06",
@@ -267,7 +269,10 @@ def main(title, goals, information):
         publish_presentation(creds, presentation_id)  # Pass the creds here
         presentation_url = f"https://docs.google.com/presentation/d/{presentation_id}/embed"
         print(f"Your presentation is available at: {presentation_url}")
-        return presentation_id
+        scripts = []
+        for slide in content.slides:
+            scripts.append(slide.script)
+        return [presentation_id, scripts]
 
 
     except Exception as e:
